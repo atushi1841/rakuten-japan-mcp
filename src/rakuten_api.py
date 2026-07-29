@@ -76,7 +76,7 @@ async def search_items(
             if not item:
                 continue
             medium_images = item.get("mediumImageUrls", [])
-            image_url = medium_images[0] if medium_images else None
+            image_url = medium_images[0].get("imageUrl") if medium_images else None
             results.append(
                 {
                     "itemName": item.get("itemName", ""),
