@@ -1,0 +1,43 @@
+{
+  "title": "Rakuten Ichiba Product Search",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "searchKeyword": {
+      "title": "Search Keyword",
+      "type": "string",
+      "description": "Keyword to search for products in Rakuten Ichiba.",
+      "editor": "textfield",
+      "isRequired": true
+    },
+    "maxResults": {
+      "title": "Max Results",
+      "type": "integer",
+      "description": "Maximum number of results to return (max 100).",
+      "default": 30,
+      "maximum": 100,
+      "editor": "number"
+    },
+    "minPrice": {
+      "title": "Minimum Price",
+      "type": "integer",
+      "description": "Minimum item price (optional).",
+      "editor": "number"
+    },
+    "maxPrice": {
+      "title": "Maximum Price",
+      "type": "integer",
+      "description": "Maximum item price (optional).",
+      "editor": "number"
+    },
+    "sortBy": {
+      "title": "Sort By",
+      "type": "string",
+      "description": "Sort order for results.",
+      "editor": "select",
+      "enum": ["standard", "+itemPrice", "-itemPrice", "reviewCount"],
+      "default": "standard"
+    }
+  },
+  "required": ["searchKeyword"]
+}
