@@ -6,9 +6,5 @@
   "version": "0.1",
   "buildTag": "latest",
   "dockerfile": "../Dockerfile",
-  "environmentVariables": {
-    "RAKUTEN_APP_ID": "71c7f83e-8192-4009-b4ff-42f19ee75fe1",
-    "RAKUTEN_ACCESS_KEY": "pk_uCjmXfMdD3mGnQLzNRqJVLqmT7lOuFF7l8MOrlExP6m"
-  },
   "input": "./INPUT_SCHEMA.json"
 }
