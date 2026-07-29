@@ -1,133 +1,112 @@
 # Rakuten Japan MCP — 楽天市場商品検索
 
-**Search Rakuten Ichiba (楽天市場) products via the official Rakuten API.**  
-Extract item names, prices, URLs, shop info, reviews, and images in clean structured JSON.
+Search Rakuten Ichiba (楽天市場), Japan's largest e-commerce platform, via the official Rakuten API. Extract product names, prices, URLs, shop info, review counts, ratings, and images. Available as an Apify actor and an MCP server for AI agents.
 
 [![Apify Store](https://img.shields.io/badge/Apify-Store-blue)](https://apify.com/fruitful_quintessence/rakuten-japan-mcp)
+[![MIT License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
-## 🚀 What This Does
+## What This Does
 
 This actor wraps the official [Rakuten Ichiba Item Search API](https://webservice.rakuten.co.jp/documentation/ichiba-item-search) and makes it available as:
 
-1. **A traditional Apify actor** — run it from the Apify Console, API, or schedule
+1. **A traditional Apify actor** — run from the Apify Console, API, or schedule
 2. **An MCP server** — connect AI agents (Claude, Cursor, ChatGPT) to search Rakuten in real-time
 
-**Why use this?** Rakuten is Japan's largest e-commerce platform with millions of products. This actor gives you programmatic access to product data without scraping HTML or managing proxies.
+**Why use this?** Rakuten is Japan's largest e-commerce platform with millions of products. This gives you programmatic access to product data without scraping HTML or managing proxies. 100% legal — uses the official API.
 
----
+## Output Sample
 
-## 🔧 Usage
+```json
+[
+  {
+    "itemName": "ポケモンカード 拡張パック",
+    "itemPrice": 1800,
+    "shopName": "カードショップ○○",
+    "itemUrl": "https://item.rakuten.co.jp/...",
+    "reviewCount": 45,
+    "reviewAverage": 4.2,
+    "mediumImageUrls": [
+      { "imageUrl": "https://thumbnail.image.rakuten.co.jp/..." }
+    ],
+    "shopOfTheYearFlag": false,
+    "genreId": "112345"
+  }
+]
+```
 
-### As an Apify Actor
+## Input
 
-1. Go to the actor page on Apify Store
-2. Enter a search keyword (e.g., "ポケモン", "フィギュア", "PS5")
-3. Set optional filters: max results, price range, sort order
-4. Run and get results as JSON, CSV, or XLSX
+```json
+{
+  "keyword": "ポケモン",
+  "maxResults": 30,
+  "genreId": "",
+  "minPrice": "",
+  "maxPrice": ""
+}
+```
 
-**Input Parameters:**
+Parameters:
+- `keyword` (required) — Search term (Japanese supported)
+- `maxResults` (optional, default: 30, max: 100) — Results per search
+- `genreId` (optional) — Filter by Rakuten genre/category ID
+- `minPrice` / `maxPrice` (optional) — Price range filter (JPY)
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `searchKeyword` | string | — | Keyword to search (required) |
-| `maxResults` | int | 30 | Max results (1-100) |
-| `minPrice` | int | — | Minimum price in JPY (optional) |
-| `maxPrice` | int | — | Maximum price in JPY (optional) |
-| `sortBy` | select | standard | Sort order |
+## MCP Usage
 
-### As an MCP Server
-
-Add to your Claude Desktop config:
+### Claude Desktop
 
 ```json
 {
   "mcpServers": {
     "rakuten-japan": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@apify/mcp-server",
-        "--actor", "fruitful_quintessence/rakuten-japan-mcp"
-      ]
+      "url": "https://fruitful-quintessence--rakuten-japan-mcp.apify.actor/mcp"
     }
   }
 }
 ```
 
-Available tools:
-- `search_rakuten(keyword, max_results, min_price, max_price)` — Search products
-- `get_actor_info()` — List available tools
-
----
-
-## 📋 Output Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `itemName` | string | Product name (Japanese) |
-| `itemPrice` | int | Current price in JPY |
-| `itemUrl` | string | Product page URL |
-| `shopName` | string | Seller shop name |
-| `reviewAverage` | float | Average review rating |
-| `reviewCount` | int | Number of reviews |
-| `imageUrl` | string | Product image URL |
-
----
-
-## 💰 Pricing
-
-Pay per event:
-- **$0.005/run** — Actor start
-- **$0.001/search** — Per search query
-- **$0.00001/result** — Per dataset item stored
-
-Free plan available for testing.
-
----
-
-## 🏗 Architecture
-
-```
-User Input → Rakuten Ichiba API (official, free)
-                  ↓
-            JSON Response
-                  ↓
-            Structured Output → Apify Dataset
-```
-
-- **100% legal** — Uses the official Rakuten Web Service API (free, commercial use allowed)
-- **No proxies needed** — Direct API calls, no HTML scraping
-- **Rate limited** — Respects API limits with automatic retry + backoff
-
----
-
-## 🔧 Development
+### Claude Code
 
 ```bash
-pip install -r requirements.txt
-
-# Set API keys
-export RAKUTEN_APP_ID="your-app-id"
-export RAKUTEN_ACCESS_KEY="your-access-key"
-
-# Run locally
-python3 -m src
-
-# Deploy to Apify
-npx apify push
+claude mcp add rakuten-japan \
+  --transport http \
+  https://fruitful-quintessence--rakuten-japan-mcp.apify.actor/mcp
 ```
 
----
+## Use Cases
 
-## ⚠️ Requirements
+- **Price comparison agent** — "Find the cheapest Nintendo Switch game on Rakuten"
+- **Product research** — "Show me top-rated anime figure shops with reviews"
+- **Inventory monitoring** — Schedule daily runs to track price changes
+- **AI shopping assistant** — Let AI agents search Rakuten before making purchase recommendations
 
-- Rakuten Web Service API credentials (free — register at https://webservice.rakuten.co.jp/)
-- The API requires an `Origin` header matching your registered domain
+## Pricing
 
----
+- **$0.005 per actor start** + **$0.001 per search** + **$0.00001 per result item**
+- Typical 30-item search: ~**$0.006** total
+- You only pay for what you use — no monthly subscription
 
-## 📝 License
+## FAQ
 
-MIT
+**Do I need a Rakuten API key?** No. The actor uses the creator's API credentials internally. You just search.
+
+**Is this legal?** Yes. This uses the official Rakuten Web Service API with proper attribution.
+
+**Can I use this from an AI agent like Claude?** Yes. Connect via MCP endpoint. The server speaks Streamable HTTP at `/mcp`.
+
+**How many results can I get per search?** Up to 100 items per query (Rakuten API limit).
+
+## Limitations
+
+- Results are limited to what the Rakuten Ichiba Item Search API returns
+- Affiliate links require your own Rakuten affiliate ID
+- The API has rate limits; excessive queries are throttled
+
+## Changelog
+
+- v0.1.7 (2026-07-29): Improved README with output samples, MCP usage guide, use cases
+- v0.1.6 (2026-07-29): PPE pricing configured ($0.005/start + $0.001/search)
+- v0.1.0 (2026-07-29): Initial release with Rakuten Ichiba search via official API
