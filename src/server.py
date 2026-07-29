@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+import sys
+from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
 
-from .rakuten_api import search_items
+sys.path.insert(0, str(Path(__file__).parent))
+
+from rakuten_api import search_items
 
 mcp = FastMCP("Rakuten Japan MCP")
 

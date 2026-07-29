@@ -2,7 +2,12 @@ import asyncio
 import logging
 from apify import Actor
 
-from .rakuten_api import search_items
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from rakuten_api import search_items
 
 logger = logging.getLogger(__name__)
 
