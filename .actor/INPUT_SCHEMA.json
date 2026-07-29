@@ -7,8 +7,7 @@
       "title": "Search Keyword",
       "type": "string",
       "description": "Keyword to search for products in Rakuten Ichiba.",
-      "editor": "textfield",
-      "isRequired": true
+      "editor": "textfield"
     },
     "maxResults": {
       "title": "Max Results",
