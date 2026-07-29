@@ -21,8 +21,15 @@ async def search_rakuten(
     min_price: float | None = None,
     max_price: float | None = None,
 ) -> list[dict[str, Any]]:
-    """Search products on Rakuten Ichiba (楽天市場) and return matching items."""
-    # Charge for this platform‑powered execution
+    """Search products on Rakuten Ichiba (楽天市場) and return matching items.
+
+    Args:
+        keyword: Search keyword (e.g. "ポケモン", "フィギュア", "PS5")
+        max_results: Maximum number of results to return (default 10, max 30)
+        min_price: Minimum price in JPY (optional)
+        max_price: Maximum price in JPY (optional)
+    """
+    # Charge for this platform execution
     from apify import Actor
 
     if Actor.is_initialized():
@@ -38,24 +45,14 @@ async def search_rakuten(
 
 
 @mcp.tool()
-async def search_rakuten_ranking(genre_id: str | None = None) -> list[dict[str, Any]]:
-    """Retrieve the current Rakuten Ichiba ranking (stub — API not yet integrated)."""
-    from apify import Actor
-
-    if Actor.is_initialized():
-        await Actor.charge("rakuten-search")
-
-    # TODO: implement real ranking endpoint when required
-    return []
-
-
-@mcp.tool()
 async def get_actor_info() -> dict[str, Any]:
     """Return information about the available tools in this MCP server."""
     return {
         "name": "Rakuten Japan MCP",
-        "tools": ["search_rakuten", "search_rakuten_ranking", "get_actor_info"],
+        "description": "Search Rakuten Ichiba (楽天市場) products via the official API",
+        "tools": ["search_rakuten", "get_actor_info"],
         "version": "0.1",
+        "pricing": "$0.005/run + $0.001/search",
     }
 
 
