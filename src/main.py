@@ -1,9 +1,18 @@
+"""
+Rakuten Japan MCP — Main entry point.
+
+Two modes:
+1. Traditional Apify Actor: runs once, pushes data to dataset
+2. MCP Server (Standby mode): hosts FastMCP server via uvicorn
+"""
+
 import asyncio
 import logging
-from apify import Actor
-
+import os
 import sys
 from pathlib import Path
+
+from apify import Actor
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -12,54 +21,80 @@ from rakuten_api import search_items
 logger = logging.getLogger(__name__)
 
 
+async def run_actor(input_data: dict) -> None:
+    """Run as a traditional Apify actor - search and push results to dataset."""
+    keyword = input_data.get("searchKeyword", "")
+    if not keyword:
+        raise ValueError("searchKeyword is required")
+
+    max_results = min(input_data.get("maxResults", 30), 100)
+    min_price = input_data.get("minPrice")
+    max_price = input_data.get("maxPrice")
+    sort_by = input_data.get("sortBy")
+
+    page = 1
+    remaining = max_results
+    total_pushed = 0
+
+    while remaining > 0:
+        hits = min(remaining, 30)
+        items = await search_items(
+            keyword=keyword,
+            max_results=hits,
+            page=page,
+            min_price=min_price,
+            max_price=max_price,
+            sort=sort_by,
+        )
+
+        if not items:
+            break
+
+        for item in items:
+            await Actor.push_data(item)
+            total_pushed += 1
+            remaining -= 1
+
+        if len(items) < hits:
+            break
+
+        page += 1
+
+    Actor.log.info(f"Pushed {total_pushed} items for keyword '{keyword}'")
+
+
+async def run_mcp_server() -> None:
+    """Run as MCP server (Standby mode) using uvicorn."""
+    import uvicorn
+    from server import get_server
+
+    port = int(os.environ.get("APIFY_CONTAINER_PORT", "3000"))
+    server = get_server()
+    app = server.http_app(transport="streamable-http")
+
+    config = uvicorn.Config(app, host="0.0.0.0", port=port, log_level="info")
+    server_instance = uvicorn.Server(config)
+
+    Actor.log.info(f"MCP server starting on port {port}")
+    await server_instance.serve()
+
+
 async def main() -> None:
-    """Apify Actor entry point for Rakuten Ichiba search."""
+    """Main entry point. Auto-detects mode based on environment."""
     await Actor.init()
 
     try:
-        user_input = await Actor.get_input() or {}
-        keyword = user_input.get("searchKeyword", "")
-        if not keyword:
-            raise ValueError("The input 'searchKeyword' is required.")
+        input_data = await Actor.get_input() or {}
 
-        max_results = min(user_input.get("maxResults", 30), 100)
-        min_price = user_input.get("minPrice")
-        max_price = user_input.get("maxPrice")
-        sort_by = user_input.get("sortBy")  # e.g. "+itemPrice", "-itemPrice", "standard", "reviewCount"
-
-        page = 1
-        remaining = max_results
-        total_pushed = 0
-
-        while remaining > 0:
-            hits = min(remaining, 30)
-            items = await search_items(
-                keyword=keyword,
-                max_results=hits,
-                page=page,
-                min_price=min_price,
-                max_price=max_price,
-                sort=sort_by,
-            )
-
-            if not items:
-                break
-
-            for item in items:
-                await Actor.push_data(item)
-                total_pushed += 1
-                remaining -= 1
-
-            # If the API returned fewer items than requested, we are done
-            if len(items) < hits:
-                break
-
-            page += 1
-
-        Actor.log.info(f"Successfully pushed {total_pushed} items to the dataset.")
+        # If input has searchKeyword, run as traditional actor
+        if input_data.get("searchKeyword"):
+            await run_actor(input_data)
+        else:
+            # No search keyword = run as MCP server
+            await run_mcp_server()
 
     except Exception as exc:
-        Actor.log.exception("Error during execution")
+        Actor.log.exception("Execution failed")
         raise
     finally:
         await Actor.exit()

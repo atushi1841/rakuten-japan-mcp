@@ -1,6 +1,13 @@
+"""
+Rakuten Japan MCP Server — FastMCP server factory.
+
+Exposes Rakuten Ichiba search as AI agent tools.
+Compatible with Apify Standby mode (uvicorn + APIFY_CONTAINER_PORT).
+"""
+
 from __future__ import annotations
 
-import asyncio
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -11,50 +18,84 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from rakuten_api import search_items
 
-mcp = FastMCP("Rakuten Japan MCP")
 
+def get_server() -> FastMCP:
+    """Create and return the FastMCP server instance."""
+    server = FastMCP("Rakuten Japan MCP", "0.1.0")
 
-@mcp.tool()
-async def search_rakuten(
-    keyword: str,
-    max_results: int = 10,
-    min_price: float | None = None,
-    max_price: float | None = None,
-) -> list[dict[str, Any]]:
-    """Search products on Rakuten Ichiba (楽天市場) and return matching items.
+    @server.tool()
+    async def search_rakuten(
+        keyword: str,
+        max_results: int = 10,
+        min_price: float | None = None,
+        max_price: float | None = None,
+    ) -> dict:
+        """Search products on Rakuten Ichiba (楽天市場).
 
-    Args:
-        keyword: Search keyword (e.g. "ポケモン", "フィギュア", "PS5")
-        max_results: Maximum number of results to return (default 10, max 30)
-        min_price: Minimum price in JPY (optional)
-        max_price: Maximum price in JPY (optional)
-    """
-    # Charge for this platform execution
-    from apify import Actor
+        Args:
+            keyword: Search keyword in Japanese (e.g. "ポケモン", "フィギュア", "PS5")
+            max_results: Maximum items to return (default 10, max 30)
+            min_price: Minimum price in JPY (optional)
+            max_price: Maximum price in JPY (optional)
+        """
+        from apify import Actor
 
-    if Actor.is_initialized():
-        await Actor.charge("rakuten-search")
+        if Actor.is_initialized():
+            await Actor.charge("rakuten-search")
 
-    items = await search_items(
-        keyword=keyword,
-        max_results=max_results,
-        min_price=min_price,
-        max_price=max_price,
-    )
-    return items
+        items = await search_items(
+            keyword=keyword,
+            max_results=max_results,
+            min_price=min_price,
+            max_price=max_price,
+        )
 
+        if not items:
+            return {
+                "type": "text",
+                "text": f"「{keyword}」の検索結果は0件でした。",
+                "structuredContent": {"keyword": keyword, "count": 0, "items": []},
+            }
 
-@mcp.tool()
-async def get_actor_info() -> dict[str, Any]:
-    """Return information about the available tools in this MCP server."""
-    return {
-        "name": "Rakuten Japan MCP",
-        "description": "Search Rakuten Ichiba (楽天市場) products via the official API",
-        "tools": ["search_rakuten", "get_actor_info"],
-        "version": "0.1",
-        "pricing": "$0.005/run + $0.001/search",
-    }
+        text_lines = [f"**楽天市場 検索結果: {keyword}** ({len(items)}件)", ""]
+        for i, item in enumerate(items[:10], 1):
+            name = item.get("itemName", "?")[:50]
+            price = f"¥{item['itemPrice']:,}" if item.get("itemPrice") else "?"
+            url = item.get("itemUrl", "")
+            shop = item.get("shopName", "")
+            text_lines.append(f"{i}. **{name}** — {price} ({shop})")
+            if url:
+                text_lines.append(f"   {url}")
 
+        return {
+            "type": "text",
+            "text": "\n".join(text_lines),
+            "structuredContent": {
+                "keyword": keyword,
+                "count": len(items),
+                "items": items,
+            },
+        }
 
-if __name__ == "__main__":
-    mcp.run()
+    @server.tool()
+    async def get_actor_info() -> dict:
+        """Get information about available tools and pricing."""
+        return {
+            "type": "text",
+            "text": (
+                "**Rakuten Japan MCP** v0.1\n"
+                "楽天市場の商品を公式APIで検索します。\n\n"
+                "**Tools:**\n"
+                "- search_rakuten: 商品検索\n"
+                "- get_actor_info: この情報\n\n"
+                "**Pricing:** $0.005/run + $0.001/search"
+            ),
+            "structuredContent": {
+                "name": "Rakuten Japan MCP",
+                "version": "0.1",
+                "tools": ["search_rakuten", "get_actor_info"],
+                "pricing": "$0.005/run + $0.001/search",
+            },
+        }
+
+    return server
