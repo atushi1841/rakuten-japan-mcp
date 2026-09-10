@@ -9,6 +9,33 @@
       "description": "Keyword to search for products in Rakuten Ichiba.",
       "editor": "textfield"
     },
+    "ranking": {
+      "title": "Get Ranking",
+      "type": "boolean",
+      "description": "Set true to fetch the Rakuten Ichiba ranking (IchibaRanking API) instead of a keyword search.",
+      "default": false,
+      "editor": "checkbox"
+    },
+    "genreId": {
+      "title": "Genre ID (for ranking)",
+      "type": "integer",
+      "description": "Restrict ranking to a genre (e.g. 101269=本・雑誌, 101347=おもちゃ, 101031=ゲーム, 100371=家電). Only used when ranking=true.",
+      "editor": "number"
+    },
+    "rankingType": {
+      "title": "Ranking Type",
+      "type": "string",
+      "description": "Ranking type when ranking=true: item (default), male, or female.",
+      "enum": ["item", "male", "female"],
+      "default": "item",
+      "editor": "select"
+    },
+    "era": {
+      "title": "Era (past ranking)",
+      "type": "string",
+      "description": "Past-ranking era as YYYYMMDD (e.g. 20190601). Only used when ranking=true. Leave empty for current ranking.",
+      "editor": "textfield"
+    },
     "maxResults": {
       "title": "Max Results",
       "type": "integer",
@@ -38,5 +65,5 @@
       "default": "standard"
     }
   },
-  "required": ["searchKeyword"]
+  "required": []
 }

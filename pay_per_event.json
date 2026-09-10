@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "eventTitle": "rakuten-search",
+      "eventDescription": "Rakuten Ichiba item search (official API)",
+      "eventPriceUsd": 0.001,
+      "isPrimaryEvent": true
+    },
+    {
+      "eventTitle": "rakuten-ranking",
+      "eventDescription": "Rakuten Ichiba ranking fetch (official API)",
+      "eventPriceUsd": 0.001,
+      "isPrimaryEvent": true
+    }
+  ]
+}

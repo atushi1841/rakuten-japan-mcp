@@ -16,7 +16,7 @@ from apify import Actor
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rakuten_api import search_items
+from rakuten_api import search_items, get_ranking
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,24 @@ async def run_mcp_server() -> None:
     await server_instance.serve()
 
 
+async def run_ranking(input_data: dict) -> None:
+    """Run as a traditional Apify actor - fetch and push ranking to dataset."""
+    genre_id = input_data.get("genreId")
+    ranking_type = input_data.get("rankingType", "item")
+    max_results = min(input_data.get("maxResults", 30), 30)
+    era = input_data.get("era")
+
+    items = await get_ranking(
+        genre_id=int(genre_id) if genre_id is not None else None,
+        ranking_type=ranking_type,
+        max_results=max_results,
+        era=era,
+    )
+    for item in items:
+        await Actor.push_data(item)
+    Actor.log.info(f"Pushed {len(items)} ranking items (genre={genre_id}, type={ranking_type})")
+
+
 async def main() -> None:
     """Main entry point. Auto-detects mode based on environment."""
     await Actor.init()
@@ -89,6 +107,8 @@ async def main() -> None:
         # If input has searchKeyword, run as traditional actor
         if input_data.get("searchKeyword"):
             await run_actor(input_data)
+        elif input_data.get("ranking", False):
+            await run_ranking(input_data)
         else:
             # No search keyword = run as MCP server
             await run_mcp_server()

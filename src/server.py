@@ -16,7 +16,7 @@ from fastmcp import FastMCP
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rakuten_api import search_items
+from rakuten_api import search_items, get_ranking
 
 
 def get_server() -> FastMCP:
@@ -78,6 +78,68 @@ def get_server() -> FastMCP:
         }
 
     @server.tool()
+    async def search_rakuten_ranking(
+        genre_id: int | None = None,
+        ranking_type: str = "item",
+        max_results: int = 10,
+        era: str | None = None,
+    ) -> dict:
+        """Get the current Rakuten Ichiba ranking (楽天市場 ランキング) via the official IchibaRanking API.
+
+        Useful for trend research, "what's hot" discovery, and resale/arbitrage signals
+        without any keyword search.
+
+        Args:
+            genre_id: Restrict ranking to a genre (e.g. 101269=本・雑誌, 101347=おもちゃ,
+                101031=ゲーム, 100371=家電). None (default) returns the overall ranking.
+            ranking_type: "item" (default), "male", or "female".
+            max_results: Number of ranked items to return (default 10, max 30).
+            era: Past-ranking era as 'YYYYMMDD' (e.g. "20190601"). None = current ranking.
+        """
+        from apify import Actor
+
+        if Actor.is_initialized():
+            await Actor.charge("rakuten-ranking")
+
+        items = await get_ranking(
+            genre_id=genre_id,
+            ranking_type=ranking_type,
+            max_results=max_results,
+            era=era,
+        )
+
+        if not items:
+            return {
+                "type": "text",
+                "text": "ランキングの取得結果は0件でした。",
+                "structuredContent": {
+                    "genreId": genre_id,
+                    "rankingType": ranking_type,
+                    "count": 0,
+                    "items": [],
+                },
+            }
+
+        scope = f"genre {genre_id}" if genre_id else "総合"
+        text_lines = [f"**楽天市場 ランキング: {scope}** ({len(items)}件)", ""]
+        for item in items:
+            rank = item.get("rank", "?")
+            name = item.get("itemName", "?")[:50]
+            price = f"¥{item['itemPrice']:,}" if item.get("itemPrice") else "?"
+            text_lines.append(f"{rank}. **{name}** — {price}")
+
+        return {
+            "type": "text",
+            "text": "\n".join(text_lines),
+            "structuredContent": {
+                "genreId": genre_id,
+                "rankingType": ranking_type,
+                "count": len(items),
+                "items": items,
+            },
+        }
+
+    @server.tool()
     async def get_actor_info() -> dict:
         """Get information about available tools and pricing."""
         return {
@@ -86,15 +148,16 @@ def get_server() -> FastMCP:
                 "**Rakuten Japan MCP** v0.1\n"
                 "楽天市場の商品を公式APIで検索します。\n\n"
                 "**Tools:**\n"
-                "- search_rakuten: 商品検索\n"
+                "- search_rakuten: キーワード商品検索\n"
+                "- search_rakuten_ranking: 楽天市場ランキング取得\n"
                 "- get_actor_info: この情報\n\n"
-                "**Pricing:** $0.005/run + $0.001/search"
+                "**Pricing:** $0.005/run + $0.001/search (or ranking)"
             ),
             "structuredContent": {
                 "name": "Rakuten Japan MCP",
                 "version": "0.1",
-                "tools": ["search_rakuten", "get_actor_info"],
-                "pricing": "$0.005/run + $0.001/search",
+                "tools": ["search_rakuten", "search_rakuten_ranking", "get_actor_info"],
+                "pricing": "$0.005/run + $0.001/search (or ranking)",
             },
         }
 
