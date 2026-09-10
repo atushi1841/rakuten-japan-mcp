@@ -16,7 +16,7 @@ This actor wraps the official Rakuten APIs and makes them available two ways:
 
 **Two data access modes:**
 - **Product search** — `IchibaItem/Search` official API (keyword search)
-- **Ranking** — `IchibaRanking/Ranking` official API (what's hot, genre ranking, historical eras)
+- **Ranking** — `IchibaItem/Ranking` official API (what's hot, genre ranking, historical eras)
 
 **Why use this?** Rakuten is Japan's largest e-commerce platform with millions of products. This actor gives you programmatic access to product and ranking data without scraping HTML or managing proxies — both via TOS-compliant official APIs.
 
