@@ -73,3 +73,8 @@ Deploy happens automatically on push to `master`/`main` via GitHub Actions.
 
 - `rakuten-search`: $0.001 / search
 - `rakuten-ranking`: $0.001 / ranking
+
+## MCP Registry
+
+This server is registered on the official [MCP Registry](https://registry.modelcontextprotocol.io).
+Find it via search: [rakuten-japan-mcp](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.rakuten-japan-mcp)
