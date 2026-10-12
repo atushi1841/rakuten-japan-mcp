@@ -1,0 +1,59 @@
+{
+  "manifest_version": "0.4",
+  "name": "rakuten-japan-mcp",
+  "display_name": "Rakuten Japan MCP — 楽天市場商品検索・ランキング",
+  "version": "0.1.0",
+  "description": "Search Rakuten Ichiba products and rankings via the official Rakuten APIs. Get item names, prices, URLs, shop info, and rankings in structured JSON.",
+  "long_description": "# Rakuten Japan MCP — 楽天市場商品検索・ランキング\n\n**Search Rakuten Ichiba (楽天市場) products and fetch the current ranking via the official Rakuten APIs.**\nExtract item names, prices, URLs, shop info, reviews, and images in clean structured JSON.\n\n## Tools\n\n| Tool | Description |\n|------|-------------|\n| `search_rakuten` | Search Rakuten Ichiba products by keyword (official API) |\n| `search_rakuten_ranking` | Get Rakuten best-seller ranking by genre (official API) |\n| `get_actor_info` | List available tools and pricing |\n\n## Pricing\n$0.001 per tool call (Apify PPE).\n\n## Requirements\nPython >=3.10, uv. Set `APIFY_TOKEN` environment variable.\n\n## Repository\nhttps://github.com/atushi1841/rakuten-japan-mcp\n\n## Apify Store\nhttps://apify.com/fruitful_quintessence/rakuten-japan-mcp",
+  "author": {
+    "name": "atushi1841",
+    "url": "https://github.com/atushi1841"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atushi1841/rakuten-japan-mcp"
+  },
+  "homepage": "https://apify.com/fruitful_quintessence/rakuten-japan-mcp",
+  "server": {
+    "type": "python",
+    "entry_point": "src/main.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "src/main.py"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "tools": [
+    {
+      "name": "search_rakuten",
+      "description": "Search Rakuten Ichiba products by keyword via the official Rakuten Open API. Returns item name, price, shop name, URL, image URL, and review count."
+    },
+    {
+      "name": "search_rakuten_ranking",
+      "description": "Get the current Rakuten Ichiba ranking (楽天市場 ランキング) via the official IchibaRanking API. Useful for trend research and \"what's hot\" discovery."
+    },
+    {
+      "name": "get_actor_info",
+      "description": "Get information about available tools and pricing for this MCP server."
+    }
+  ],
+  "keywords": [
+    "japan",
+    "rakuten",
+    "ecommerce",
+    "product search",
+    "ranking",
+    "online shopping",
+    "ja"
+  ]
+}
