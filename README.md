@@ -78,3 +78,9 @@ Deploy happens automatically on push to `master`/`main` via GitHub Actions.
 
 This server is registered on the official [MCP Registry](https://registry.modelcontextprotocol.io).
 Find it via search: [rakuten-japan-mcp](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.rakuten-japan-mcp)
+
+---
+## Data & Store
+
+- **Apify Store:** https://apify.com/fruitful_quintessence
+- **Gumroad datasets:** https://atushi5.gumroad.com/l/kutuxe
